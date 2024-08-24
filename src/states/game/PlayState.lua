@@ -52,7 +52,7 @@ function PlayState:render()
     self.dungeon:render()
     love.graphics.pop()
     
-    love.graphics.draw(gTextures['hearts'], gFrames['hearts'][5], 100, 100)
+    -- love.graphics.draw(gTextures['hearts'], gFrames['hearts'][5], 100, 100)
 
     -- draw player hearts, top of screen
     local healthLeft = self.player.health

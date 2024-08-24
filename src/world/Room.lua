@@ -48,24 +48,61 @@ end
 function Room:generateEntities()
     local types = {'skeleton', 'slime', 'bat', 'ghost', 'spider'}
 
+    local lifeUp = GameObject(GAME_OBJECT_DEFS['heart'], 0, 0)
+
+    lifeUp.onCollide = function()
+        if lifeUp.state == 'full' then
+            lifeUp.state = 'empty'
+            self.player.health = self.player.health + 2
+        end
+    end
+
     for i = 1, 10 do
         local type = types[math.random(#types)]
 
-        table.insert(self.entities, Entity {
-            animations = ENTITY_DEFS[type].animations,
-            walkSpeed = ENTITY_DEFS[type].walkSpeed or 20,
+        if math.random(10) == 5 then
+            table.insert(self.entities, Entity {
+                animations = ENTITY_DEFS[type].animations,
+                walkSpeed = ENTITY_DEFS[type].walkSpeed or 20,
+    
+                -- ensure X and Y are within bounds of the map
+                x = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
+                    VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),
+                y = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
+                    VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16),
+                
+                width = 16,
+                height = 16,
+    
+                health = 1,
+    
+                onHit = function (x, y)
+                    lifeUp.x = x
+                    lifeUp.y = y
+                    lifeUp:render(self.adjacentOffsetX, self.adjacentOffsetY)
+                    if self.player:collides(lifeUp) then
+                        lifeUp:onCollide()
+                    end
+                end
+            })
 
-            -- ensure X and Y are within bounds of the map
-            x = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
-                VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),
-            y = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
-                VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16),
-            
-            width = 16,
-            height = 16,
-
-            health = 1
-        })
+        else
+            table.insert(self.entities, Entity {
+                animations = ENTITY_DEFS[type].animations,
+                walkSpeed = ENTITY_DEFS[type].walkSpeed or 20,
+    
+                -- ensure X and Y are within bounds of the map
+                x = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
+                    VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),
+                y = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
+                    VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16),
+                
+                width = 16,
+                height = 16,
+    
+                health = 1,
+            })
+        end
 
         self.entities[i].stateMachine = StateMachine {
             ['walk'] = function() return EntityWalkState(self.entities[i]) end,
@@ -80,6 +117,7 @@ end
     Randomly creates an assortment of obstacles for the player to navigate around.
 ]]
 function Room:generateObjects()
+
     local switch = GameObject(
         GAME_OBJECT_DEFS['switch'],
         math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
@@ -207,7 +245,11 @@ function Room:render()
     end
 
     for k, entity in pairs(self.entities) do
-        if not entity.dead then entity:render(self.adjacentOffsetX, self.adjacentOffsetY) end
+        if not entity.dead then 
+            entity:render(self.adjacentOffsetX, self.adjacentOffsetY)
+        else
+            entity.onHit(entity.x, entity.y)
+        end
     end
 
     -- stencil out the door arches so it looks like the player is going through

@@ -22,8 +22,6 @@ function GameObject:init(def, x, y)
     self.defaultState = def.defaultState
     self.state = self.defaultState
     self.states = def.states
-    self.consumable = def.consumable
-    self.onConsume = def.onConsume
 
     -- dimensions
     self.x = x
