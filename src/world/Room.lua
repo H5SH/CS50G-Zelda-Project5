@@ -60,7 +60,7 @@ function Room:generateEntities()
     for i = 1, 10 do
         local type = types[math.random(#types)]
 
-        if math.random(10) == 5 then
+        if i == 5 then
             table.insert(self.entities, Entity {
                 animations = ENTITY_DEFS[type].animations,
                 walkSpeed = ENTITY_DEFS[type].walkSpeed or 20,
@@ -126,6 +126,30 @@ function Room:generateObjects()
                     VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
     )
 
+    local pot = GameObject(
+        GAME_OBJECT_DEFS['pot'],
+        math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
+                    VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),
+        math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
+                    VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
+    )
+
+    pot.onCollide = function ()
+        -- to make the barel solid
+        self.player:changeState('carry-pot')
+        -- if self.player.direction == 'left' then
+        --     self.player.x = pot.x + 12
+        -- elseif self.player.direction == 'right' then
+        --     self.player.x = pot.x - 12
+        -- elseif self.player.direction == 'down' then
+        --     self.player.y = pot.y - 20
+        -- elseif self.player.direction == 'up' then
+        --     self.player.y = pot.y + 8
+        -- elseif love.keyboard.isDown('enter') then
+        --     self.player:changeState('carry-pot')
+        -- end
+    end
+
     -- define a function for the switch that will open all doors in the room
     switch.onCollide = function()
         if switch.state == 'unpressed' then
@@ -141,6 +165,7 @@ function Room:generateObjects()
     end
 
     -- add to list of objects in scene (only one switch for now)
+    table.insert(self.objects, pot)
     table.insert(self.objects, switch)
 end
 
@@ -149,6 +174,7 @@ end
     of said tiles for visual variety.
 ]]
 function Room:generateWallsAndFloors()
+    -- local potGenrated = false
     for y = 1, self.height do
         table.insert(self.tiles, {})
 
@@ -173,6 +199,9 @@ function Room:generateWallsAndFloors()
                 id = TILE_TOP_WALLS[math.random(#TILE_TOP_WALLS)]
             elseif y == self.height then
                 id = TILE_BOTTOM_WALLS[math.random(#TILE_BOTTOM_WALLS)]
+            -- elseif x == math.random(self.width) and not (potGenrated) then
+            --     potGenrated = true
+            --     id = 110
             else
                 id = TILE_FLOORS[math.random(#TILE_FLOORS)]
             end
@@ -228,9 +257,18 @@ function Room:render()
     for y = 1, self.height do
         for x = 1, self.width do
             local tile = self.tiles[y][x]
+
+            -- add floor before placing the pot
+            if tile.id == 110 then
+                love.graphics.draw(gTextures['tiles'], gFrames['tiles'][TILE_FLOORS[1]],
+                (x - 1) * TILE_SIZE + self.renderOffsetX + self.adjacentOffsetX, 
+                (y - 1) * TILE_SIZE + self.renderOffsetY + self.adjacentOffsetY)                
+            end
+
             love.graphics.draw(gTextures['tiles'], gFrames['tiles'][tile.id],
                 (x - 1) * TILE_SIZE + self.renderOffsetX + self.adjacentOffsetX, 
                 (y - 1) * TILE_SIZE + self.renderOffsetY + self.adjacentOffsetY)
+
         end
     end
 
