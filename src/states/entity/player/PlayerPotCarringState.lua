@@ -28,7 +28,7 @@ function PlayerPotCarringState:update(dt)
         self.entity.direction = 'down'
         self.entity:changeAnimation('pot-down')
     else
-        self.entity:changeState('idle')
+        self.entity:changeState('pot-idle')
     end
 
     EntityWalkState.update(self, dt)
