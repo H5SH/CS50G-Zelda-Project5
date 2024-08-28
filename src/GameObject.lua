@@ -34,7 +34,7 @@ function GameObject:init(def, x, y)
 end
 
 function GameObject:update(dt)
-
+    
 end
 
 function GameObject:render(adjacentOffsetX, adjacentOffsetY)

@@ -12,4 +12,7 @@ function PlayerPotIdleState:update(dt)
     love.keyboard.isDown('up') or love.keyboard.isDown('down') then
         self.entity:changeState('carry-pot')
     end
+    if love.keyboard.wasPressed('return') then
+        self.entity:changeState('walk')
+    end
 end

@@ -38,10 +38,6 @@ function PlayerWalkState:update(dt)
         self.entity:changeState('swing-sword')
     end
 
-    -- if love.keyboard.isDown('enter') then
-    --     self.entity:changeState('carry-pot')
-    -- end
-
     -- perform base collision detection against walls
     EntityWalkState.update(self, dt)
 
