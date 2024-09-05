@@ -134,28 +134,30 @@ function Room:generateObjects()
     )
 
     pot.onCollide = function()
-        -- to make the barel solid
-        if love.keyboard.isDown('return') and not self.projectTilePicked then
-            self.player:changeState('carry-pot')
-            self.projectTilePicked = true
-        elseif love.keyboard.isDown('return') and self.projectTilePicked then
-            self.player:changeState('walk')
-        end
+            -- to make the barel solid
+            if love.keyboard.isDown('return') and not self.projectTilePicked then
+                pot.picked = false
+                self.player:changeState('carry-pot')
+            elseif love.keyboard.isDown('return') and self.projectTilePicked then
+                self.player:changeState('walk')
+            end
+    
+            if pot.picked == true then
+            elseif self.player.direction == 'left' then
+                self.player.x = pot.x + 12
+            elseif self.player.direction == 'right' then
+                self.player.x = pot.x - 12
+            elseif self.player.direction == 'down' then
+                self.player.y = pot.y - 20
+            elseif self.player.direction == 'up' then
+                self.player.y = pot.y + 8
+            elseif love.keyboard.isDown('enter') then
+                self.player:changeState('carry-pot')  
+            end
+    end
 
-        if self.projectTilePicked then
-
-        elseif self.player.direction == 'left' then
-            self.player.x = pot.x + 12
-        elseif self.player.direction == 'right' then
-            self.player.x = pot.x - 12
-        elseif self.player.direction == 'down' then
-            self.player.y = pot.y - 20
-        elseif self.player.direction == 'up' then
-            self.player.y = pot.y + 8
-        elseif love.keyboard.isDown('enter') then
-            self.player:changeState('carry-pot')
-            
-        end
+    pot.onDestroyed = function ()
+        pot.destroyed = true
     end
 
     -- define a function for the switch that will open all doors in the room
@@ -238,6 +240,14 @@ function Room:update(dt)
             entity:update(dt)
         end
 
+        for k, object in pairs(self.objects) do
+            if entity:collides(object) and (object.solid and not (object.picked)) and not (object.thrownDirection == nil) then
+                entity:damage(1)
+                gSounds['hit-enemy']:play()
+                object:onDestroyed()
+            end
+        end
+
         -- collision between the player and entities in the room
         if not entity.dead and self.player:collides(entity) and not self.player.invulnerable then
             gSounds['hit-player']:play()
@@ -252,7 +262,6 @@ function Room:update(dt)
 
     for k, object in pairs(self.objects) do
         object:update(dt)
-
         -- trigger collision callback on object
         if self.player:collides(object) and (not object.solid or  not self.projectTilePicked)then
             object:onCollide()
@@ -285,9 +294,7 @@ function Room:render()
     end
 
     for k, object in pairs(self.objects) do
-        if not object.solid or not self.projectTilePicked then
-            object:render(self.adjacentOffsetX, self.adjacentOffsetY)
-        end
+            object:render(self.adjacentOffsetX, self.adjacentOffsetY)            
     end
 
     for k, entity in pairs(self.entities) do

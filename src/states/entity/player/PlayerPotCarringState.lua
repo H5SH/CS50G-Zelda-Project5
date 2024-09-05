@@ -8,7 +8,6 @@ function PlayerPotCarringState:init(player, dungeon)
     self.entity.offsetX = 0
 
     self.projectile = nil
-    self.projectileDirection = 'up'
 
     -- self.player:changeAnimation('pot-' .. self.player.direction)
 end
@@ -30,21 +29,24 @@ function PlayerPotCarringState:update(dt)
         self.entity:changeState('pot-idle')
     end
 
-    if self.dungeon.currentRoom.projectTilePicked and love.keyboard.wasPressed('return') then
+    if love.keyboard.wasPressed('return') then
         for k, object in pairs(self.dungeon.currentRoom.objects) do
-            if object.solid then
+            if object.solid and not (object.picked) then
                 self.projectile = object
             end
         end
-        if love.keyboard.isDown('left') then
-            self.projectileDirection = 'left'
-        elseif love.keyboard.isDown('right') then
-            self.projectileDirection = 'right'
-        elseif love.keyboard.isDown('up') then
-            self.projectileDirection = 'up'
-        else
-            self.projectileDirection = 'down'
+        if not (self.projectile == nil) then
+            if love.keyboard.isDown('left') then
+                self.projectile.thrownDirection = 'left'
+            elseif love.keyboard.isDown('right') then
+                self.projectile.thrownDirection = 'right'
+            elseif love.keyboard.isDown('up') then
+                self.projectile.thrownDirection = 'up'
+            else
+                self.projectile.thrownDirection = 'down'
+            end
         end
+        self.entity:changeState('walk')
     end
 
     EntityWalkState.update(self, dt)
@@ -54,13 +56,10 @@ function PlayerPotCarringState:render()
     local anim = self.entity.currentAnimation
     love.graphics.draw(gTextures[anim.texture], gFrames[anim.texture][anim:getCurrentFrame()],
         math.floor(self.entity.x - self.entity.offsetX), math.floor(self.entity.y - self.entity.offsetY))
-    if self.dungeon.currentRoom.projectTilePicked then
         for k, object in pairs(self.dungeon.currentRoom.objects) do
-            if object.solid then
+            if object.solid and not (object.picked) then
                 object.x = self.entity.x
                 object.y = self.entity.y - 12
-                object:render(self.entity.offsetX, self.entity.offsetY)
             end
-        end
     end
 end
